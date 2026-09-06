@@ -1,0 +1,32 @@
+{
+  "name": "salary-management",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Employee salary management software - repo-level tooling only. See api/ and web/ for the apps.",
+  "scripts": {
+    "prepare": "husky",
+    "format": "prettier --write \"web/**/*.{ts,tsx,js,jsx,mjs,css,json,md}\" \"*.{json,md,yml}\" \"docs/**/*.md\"",
+    "format:check": "prettier --check \"web/**/*.{ts,tsx,js,jsx,mjs,css,json,md}\" \"*.{json,md,yml}\" \"docs/**/*.md\"",
+    "format:java": "cd api && ./mvnw spotless:apply",
+    "lint:web": "cd web && npm run lint",
+    "test:api": "cd api && ./mvnw test",
+    "check:api": "cd api && ./mvnw verify",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "db:reset": "docker compose down -v && docker compose up -d"
+  },
+  "lint-staged": {
+    "web/**/*.{ts,tsx,js,jsx,mjs,css,json,md}": [
+      "prettier --write"
+    ],
+    "{docs/**/*.md,*.{json,md,yml}}": [
+      "prettier --write"
+    ]
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.6",
+    "prettier": "^3.6.2",
+    "prettier-plugin-tailwindcss": "^0.7.1"
+  }
+}

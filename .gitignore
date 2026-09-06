@@ -1,0 +1,42 @@
+# ---- Java / Maven ----
+api/target/
+api/bin/
+!api/.mvn/wrapper/maven-wrapper.jar
+*.class
+*.jar
+!maven-wrapper.jar
+*.war
+hs_err_pid*
+replay_pid*
+
+# ---- Node / Next.js ----
+node_modules/
+web/.next/
+web/out/
+web/build/
+web/next-env.d.ts
+.pnp
+.pnp.js
+*.tsbuildinfo
+
+# ---- Env & secrets ----
+.env
+.env.*
+!.env.example
+
+# ---- Test / coverage ----
+coverage/
+web/coverage/
+api/**/test-results/
+
+# ---- Editors / OS ----
+.idea/
+*.iml
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
+
+# ---- Local data ----
+pgdata/
+*.log

@@ -1,0 +1,7 @@
+node_modules/
+web/.next/
+web/out/
+api/target/
+api/.mvn/
+package-lock.json
+*.min.*
