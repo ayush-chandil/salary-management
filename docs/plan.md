@@ -18,24 +18,21 @@ Monorepo scaffold, tooling, CI, and the conventions everything else inherits.
 - Postgres 16 via `docker-compose.yml`, pinned to the same image Testcontainers uses
 - `CLAUDE.md` conventions, `docs/ai/prompts.md` AI log started
 
-## Phase 1 — Requirements document
+## Phase 1 — Requirements document ✅
 
-One page, written _before_ feature code. `docs/requirements.md`.
+One page, written _before_ feature code — see [requirements.md](requirements.md).
 
-- Goal, in the HR Manager's language
-- Scope and prioritised features
-- **Explicitly out of scope, with reasoning** — the highest-value section
-- Assumptions (currency normalisation, single-user persona, sensitive attributes)
+Scope is framed around the five questions the HR Manager needs answered, rather
+than a feature list. Decisions worth carrying forward into Phase 2:
 
-Proposed **in**: employee directory (search/filter/sort/paginate over 10k) ·
-employee detail with effective-dated salary history · salary edit with change
-reason and audit trail · compensation insights (distribution, percentiles, cost
-by department/country/level, compa-ratio vs. bands) · multi-currency normalised
-to a base currency.
-
-Proposed **out**: auth/RBAC beyond a stubbed HR-manager session · payroll runs,
-payslips, tax · approval workflows · live FX rates (snapshotted rate table
-instead — deterministic and testable) · multi-tenancy · i18n.
+- Compensation is **annual base salary only** — bonus/equity would be an extra
+  table, not a redesign.
+- **Gender is included** but nullable, used only in aggregates, and suppressed
+  below a minimum group size.
+- **FX rates are snapshotted** with an `as_of` date; historical amounts are not
+  restated.
+- **No auth/RBAC** — a single trusted HR-manager caller.
+- Bulk CSV import is cut; the seed script already proves bulk loading.
 
 ## Phase 2 — Data model & architecture
 

@@ -108,3 +108,38 @@ importantly) **what we changed or rejected**, since the edits are the signal.
 - Deliberately kept the pre-commit hook to web/docs only. Booting Maven on every
   commit would discourage the incremental committing the brief asks for; CI runs
   `spotless:check` instead.
+
+---
+
+## 2026-09-06 — Phase 1 requirements document
+
+**Phase:** 1
+**Tool:** Claude Code (Opus 5)
+
+**Prompt / intent**
+
+> Write the one-page requirements document, before any feature code.
+
+**Outcome**
+
+- `docs/requirements.md`: goal, persona, the five questions the system must answer,
+  in-scope table, out-of-scope list with reasoning, assumptions, non-functional
+  requirements.
+
+**What we accepted / changed / rejected**
+
+- Framed scope around **five questions the HR Manager needs answered** rather than a
+  feature list. The brief's problem statement emphasises "answer questions about how
+  the org pays people", so features are justified by the question they serve.
+- **Included** a nullable gender attribute for pay-gap analysis, but constrained it to
+  aggregates only and with a minimum-group-size threshold. Rejected both alternatives:
+  omitting it entirely (the system then cannot answer the equity question at all) and
+  including it unguarded (risks identifying individuals from small cohorts).
+- **Cut bulk CSV import**, despite it fitting the "escape from Excel" narrative,
+  because the seed script already demonstrates bulk loading. Recorded in the document
+  as the closest thing to a regret, rather than silently dropped.
+- **Rejected live FX rates** in favour of a snapshotted rate table with an `as_of`
+  date — a live feed makes tests non-deterministic and historical reports
+  irreproducible.
+- Scoped compensation to **annual base salary only**, noting that bonus/equity would
+  be an extra table rather than a redesign, so the cut is cheap to reverse.
