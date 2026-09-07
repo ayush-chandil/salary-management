@@ -20,30 +20,21 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Generates demo employees and their compensation history.
  *
- * <p>
- * Deliberately not a Flyway migration: reference data is meaningless-without,
- * but demo data
+ * <p>Deliberately not a Flyway migration: reference data is meaningless-without, but demo data
  * should never appear in an environment that did not ask for it.
  *
- * <p>
- * Two properties matter here:
+ * <p>Two properties matter here:
  *
  * <ul>
- * <li><b>Deterministic</b> -- the same random seed produces byte-identical
- * output, so tests can
- * assert on specific values and a demo is reproducible.
- * <li><b>Batched</b> -- rows are inserted via JDBC batches of
- * {@value #BATCH_SIZE} rather than
- * one statement per row. At 10,000 employees and ~30,000 compensation records
- * the difference
- * is minutes, not milliseconds.
+ *   <li><b>Deterministic</b> -- the same random seed produces byte-identical output, so tests can
+ *       assert on specific values and a demo is reproducible.
+ *   <li><b>Batched</b> -- rows are inserted via JDBC batches of {@value #BATCH_SIZE} rather than
+ *       one statement per row. At 10,000 employees and ~30,000 compensation records the difference
+ *       is minutes, not milliseconds.
  * </ul>
  *
- * <p>
- * JDBC is used directly rather than JPA: this is bulk loading, where an entity
- * cache and
- * dirty-checking are pure overhead. Identifiers still come from the same
- * sequences the entities
+ * <p>JDBC is used directly rather than JPA: this is bulk loading, where an entity cache and
+ * dirty-checking are pure overhead. Identifiers still come from the same sequences the entities
  * use, so the two paths cannot collide.
  */
 @Service
@@ -61,20 +52,15 @@ public class DataSeeder {
       List<CountryRef> countries,
       List<DeptRef> departments,
       List<LevelRef> levels,
-      Map<String, BandRef> bands) {
-  }
+      Map<String, BandRef> bands) {}
 
-  private record CountryRef(String code, String currency, int weight) {
-  }
+  private record CountryRef(String code, String currency, int weight) {}
 
-  private record DeptRef(long id, String code, int weight) {
-  }
+  private record DeptRef(long id, String code, int weight) {}
 
-  private record LevelRef(long id, String code, String name, int rank, int weight) {
-  }
+  private record LevelRef(long id, String code, String name, int rank, int weight) {}
 
-  private record BandRef(long minMinor, long midMinor, long maxMinor) {
-  }
+  private record BandRef(long minMinor, long midMinor, long maxMinor) {}
 
   @Transactional
   public SeedSummary seed(int employeeCount, long randomSeed, boolean reset) {
@@ -115,18 +101,18 @@ public class DataSeeder {
 
       employeeRows.add(
           new Object[] {
-              id,
-              code,
-              first,
-              last,
-              email,
-              gender == null ? null : gender.name(),
-              country.code(),
-              dept.id(),
-              level.id(),
-              title,
-              hireDate,
-              status.name()
+            id,
+            code,
+            first,
+            last,
+            email,
+            gender == null ? null : gender.name(),
+            country.code(),
+            dept.id(),
+            level.id(),
+            title,
+            hireDate,
+            status.name()
           });
 
       long currentAmount = drawSalary(band, random);
@@ -151,12 +137,13 @@ public class DataSeeder {
     batchInsertEmployees(employeeRows);
     batchInsertCompensation(compRows);
 
-    SeedSummary summary = new SeedSummary(
-        employeeRows.size(),
-        compRows.size(),
-        belowBand,
-        aboveBand,
-        Duration.between(started, Instant.now()));
+    SeedSummary summary =
+        new SeedSummary(
+            employeeRows.size(),
+            compRows.size(),
+            belowBand,
+            aboveBand,
+            Duration.between(started, Instant.now()));
     log.info("Seeded {}", summary.describe());
     return summary;
   }
@@ -166,11 +153,8 @@ public class DataSeeder {
   /**
    * Draws a salary around the band midpoint.
    *
-   * <p>
-   * Deliberately produces some out-of-band outliers. A dataset where everyone
-   * sits neatly inside
-   * their band would make the band-breach insight look broken, and gives an HR
-   * manager nothing to
+   * <p>Deliberately produces some out-of-band outliers. A dataset where everyone sits neatly inside
+   * their band would make the band-breach insight look broken, and gives an HR manager nothing to
    * find.
    */
   private long drawSalary(BandRef band, Random random) {
@@ -183,15 +167,11 @@ public class DataSeeder {
   }
 
   /**
-   * Builds an effective-dated chain ending at {@code currentAmount}, working
-   * backwards by undoing
-   * raises. Periods are contiguous and non-overlapping, which the database
-   * enforces anyway via
+   * Builds an effective-dated chain ending at {@code currentAmount}, working backwards by undoing
+   * raises. Periods are contiguous and non-overlapping, which the database enforces anyway via
    * {@code compensation_no_overlap}.
    *
-   * <p>
-   * A terminated employee's final record is closed, so they hold no open record
-   * and drop out of
+   * <p>A terminated employee's final record is closed, so they hold no open record and drop out of
    * "current headcount" naturally.
    */
   private List<Object[]> buildHistory(
@@ -242,7 +222,7 @@ public class DataSeeder {
       }
       ChangeReason reason = i == 0 ? ChangeReason.INITIAL : pickReason(random);
       // Index 0 is a placeholder; identifiers are assigned in bulk after generation.
-      rows.add(new Object[] { null, employeeId, amounts[i], currency, from, to, reason.name() });
+      rows.add(new Object[] {null, employeeId, amounts[i], currency, from, to, reason.name()});
     }
     return rows;
   }
@@ -255,10 +235,7 @@ public class DataSeeder {
     return roll < 97 ? EmploymentStatus.ON_LEAVE : EmploymentStatus.TERMINATED;
   }
 
-  /**
-   * Nullable by design: "unknown" must be representable, and is excluded from
-   * breakdowns.
-   */
+  /** Nullable by design: "unknown" must be representable, and is excluded from breakdowns. */
   private Gender pickGender(Random random) {
     int roll = random.nextInt(100);
     if (roll < 47) {
@@ -300,7 +277,8 @@ public class DataSeeder {
   // --------------------------------------------------------------------- writing
 
   private void batchInsertEmployees(List<Object[]> rows) {
-    String sql = """
+    String sql =
+        """
         INSERT INTO employee (
             id, employee_code, first_name, last_name, email, gender,
             country_code, department_id, job_level_id, job_title, hire_date, employment_status)
@@ -312,7 +290,8 @@ public class DataSeeder {
   }
 
   private void batchInsertCompensation(List<Object[]> rows) {
-    String sql = """
+    String sql =
+        """
         INSERT INTO compensation_record (
             id, employee_id, amount_minor, currency_code,
             effective_from, effective_to, change_reason)
@@ -323,9 +302,7 @@ public class DataSeeder {
     }
   }
 
-  /**
-   * Pulls a block of identifiers in one round trip rather than one call per row.
-   */
+  /** Pulls a block of identifiers in one round trip rather than one call per row. */
   private List<Long> nextIds(String sequence, int count) {
     return jdbc.queryForList(
         "SELECT nextval('" + sequence + "') FROM generate_series(1, ?)", Long.class, count);
@@ -409,12 +386,12 @@ public class DataSeeder {
   /** A seniority pyramid: far more juniors than directors. */
   private int levelWeight(int rank) {
     return (switch (rank) {
-          case 1 -> 28;
-          case 2 -> 30;
-          case 3 -> 22;
-          case 4 -> 12;
-          case 5 -> 6;
-          default -> 2;
-        });
+      case 1 -> 28;
+      case 2 -> 30;
+      case 3 -> 22;
+      case 4 -> 12;
+      case 5 -> 6;
+      default -> 2;
+    });
   }
 }
