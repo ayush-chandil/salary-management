@@ -34,23 +34,24 @@ than a feature list. Decisions worth carrying forward into Phase 2:
 - **No auth/RBAC** — a single trusted HR-manager caller.
 - Bulk CSV import is cut; the seed script already proves bulk loading.
 
-## Phase 2 — Data model & architecture
+## Phase 2 — Data model & architecture ✅
 
-`docs/architecture.md` plus a Mermaid diagram (renders in the repo, no binaries).
+[architecture.md](architecture.md) with a Mermaid ER diagram, `V1__initial_schema.sql`,
+`V2__reference_data.sql`, and eight JPA entities. `./mvnw verify` proves the entities
+match the migrated schema, because `ddl-auto` is `validate`.
 
-Entities: `Employee`, `Department`, `Level`, `Country` (with `fx_rate_to_base`),
+Entities: `Currency`, `Country`, `FxRate`, `Department`, `JobLevel`, `Employee`,
 `CompensationRecord`, `SalaryBand`.
 
-Three decisions to make loudly, because each is a quality signal:
+What the phase settled:
 
-1. Money as integer minor units + ISO-4217 currency — never floats.
-2. Effective-dated compensation (`effective_from` / `effective_to`); a raise is
-   an insert, not an update. Gives salary history for free.
-3. Salary bands per level + country — unlocks compa-ratio, which is product
-   thinking rather than CRUD.
-
-`gender` enables pay-gap analysis (a natural reading of "how the org pays
-people") but is sensitive data. Either way, **write down the reasoning**.
+1. Money as integer minor units + ISO-4217 currency — never floats — with the
+   **currency exponent** as a first-class column, since JPY has no minor units.
+2. Effective-dated compensation, with non-overlap and one-current-record enforced
+   by **database constraints** rather than service-layer checks.
+3. Salary bands per level + country, derived in SQL rather than hand-written.
+4. Sequences with `INCREMENT BY 50` instead of `IDENTITY`, so Phase 3 can batch.
+5. `gender` included but nullable; `manager_id` cut.
 
 ## Phase 3 — Seed script & performance baseline
 

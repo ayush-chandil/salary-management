@@ -143,3 +143,47 @@ importantly) **what we changed or rejected**, since the edits are the signal.
   irreproducible.
 - Scoped compensation to **annual base salary only**, noting that bonus/equity would
   be an extra table rather than a redesign, so the cut is cheap to reverse.
+
+---
+
+## 2026-09-07 — Phase 2 data model and architecture
+
+**Phase:** 2
+**Tool:** Claude Code (Opus 5)
+
+**Prompt / intent**
+
+> Design the data model and architecture; write the migrations and JPA entities.
+
+**Outcome**
+
+- `docs/architecture.md` with a Mermaid ER diagram and the five load-bearing decisions.
+- `V1__initial_schema.sql`, `V2__reference_data.sql`, and eight JPA entities.
+- `./mvnw verify` green: Flyway applies both migrations and Hibernate validates every
+  entity mapping against the result.
+
+**What we accepted / changed / rejected**
+
+- **Caught a real bug before it shipped.** The first draft of the derived salary bands
+  divided USD _cents_ by the FX rate for every currency, which made JPY bands 100x too
+  large (JPY has no minor units). Fixed by adding a `currency` table with an
+  `exponent` column and routing every conversion through it. Verified against a live
+  Postgres: L1 Japan is now ¥7,835,821 ≈ $52,500, not ¥783,582,100.
+- **`ddl-auto: validate` earned its keep immediately** — it failed the build on a
+  `CHAR` vs `VARCHAR` mismatch that would otherwise have surfaced as blank-padded
+  `'USD '` strings at runtime. Fixed in the schema rather than by annotating around
+  it, since Postgres documents no advantage for `CHAR`.
+- **Rejected `IDENTITY` columns in favour of sequences with `INCREMENT BY 50`.**
+  `IDENTITY` forces Hibernate to read the generated key back per row, silently
+  disabling JDBC batching — which would have quietly undermined the Phase 3 seed.
+- **Pushed two invariants into the database** rather than the service layer: a gist
+  exclusion constraint for non-overlapping pay periods, and a partial unique index for
+  at most one open record. Both were verified by attempting the violating inserts;
+  service-layer checks would have had a read-then-write race.
+- Deliberately did **not** annotate the generated `full_name` column with
+  `@Generated` — it would trigger a re-select per insert and defeat batching.
+- **Derived the 48 salary bands in SQL** from a per-level USD midpoint and a
+  per-country cost factor, rather than hand-writing 48 rows and 48 chances to
+  misplace a zero.
+- **Cut `manager_id`** from `employee`. Realistic and cheap, but no question in
+  requirements.md needs an org hierarchy.
