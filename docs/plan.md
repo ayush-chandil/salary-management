@@ -53,14 +53,19 @@ What the phase settled:
 4. Sequences with `INCREMENT BY 50` instead of `IDENTITY`, so Phase 3 can batch.
 5. `gender` included but nullable; `manager_id` cut.
 
-## Phase 3 — Seed script & performance baseline
+## Phase 3 — Seed script & performance baseline ✅
 
-- Fixed-seed generator → 10,000 employees across ~8 countries, ~10 departments,
-  6 levels; 1–5 compensation rows each (~30k rows)
-- Batched inserts (Hibernate `batch_size`), not a 10k-iteration loop
-- Indexes: `department_id`, `country_code`, `level_id`, partial index on
-  `effective_to IS NULL`, trigram index for name search
-- Record baseline timings in `docs/performance.md`
+`DataSeeder` under the `seed` profile, plus real baselines in
+[performance.md](performance.md).
+
+- 10,000 employees and 25,643 compensation records in **7.8 s**, via JDBC batches
+  of 1,000 and bulk sequence allocation
+- Deterministic: a fixed random seed reproduces identical data, asserted by test
+- Weighted distributions (country, department, seniority pyramid) rather than
+  uniform, plus deliberate out-of-band outliers for the insights to find
+- Terminated employees hold no open record, so current headcount is meaningful
+- Trigram index measured at **~13x faster** than the sequential scan it replaces
+- 9 tests green
 
 ## Phase 4 — Core API & tests
 

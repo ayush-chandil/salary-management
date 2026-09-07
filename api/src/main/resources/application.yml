@@ -46,3 +46,19 @@ management:
 logging:
   level:
     com.acme.salary: ${LOG_LEVEL:INFO}
+
+app:
+  seed:
+    employees: ${SEED_EMPLOYEES:10000}
+    # Fixed, so a seeded demo is reproducible. Change it for different demo data.
+    random-seed: ${SEED_RANDOM:20260101}
+    reset: ${SEED_RESET:true}
+
+---
+# Activated with -Dspring-boot.run.profiles=seed. Runs the seed, then exits.
+spring:
+  config:
+    activate:
+      on-profile: seed
+  main:
+    web-application-type: none
