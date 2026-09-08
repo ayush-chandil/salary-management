@@ -235,3 +235,50 @@ importantly) **what we changed or rejected**, since the edits are the signal.
 - **Recorded the limitations honestly** rather than only the good numbers — offset
   pagination will not scale past this dataset, and these are single-query timings,
   not load-test results.
+
+---
+
+## 2026-09-08 — Phase 4 core API
+
+**Phase:** 4
+**Tool:** Claude Code (Opus 5)
+
+**Prompt / intent**
+
+> Implement the core API: directory, detail, create/update, and salary changes, with tests.
+
+**Outcome**
+
+- Directory, detail, create, update and salary-change endpoints.
+- `Money` value type carrying the currency exponent, with 18 pure unit tests.
+- RFC 9457 problem details from one `@RestControllerAdvice`.
+- 46 tests green.
+
+**What we accepted / changed / rejected**
+
+- **A test caught a real bug in the entity mapping.** Renaming an employee returned the
+  old `fullName`: the generated column was mapped without `@Generated`, so the value
+  served from the persistence context was stale. The Phase 2 reasoning for omitting it
+  (protecting JDBC batching) had stopped applying the moment the Phase 3 seed moved to
+  raw JDBC — the annotation now costs one extra select on single-employee writes and
+  nothing else. Comment corrected rather than left misleading.
+- **Fixed a test-isolation flaw of our own making.** Seeding once per class made
+  row-count assertions depend on execution order, because the write tests add
+  employees. Switched to reseeding before each test: ~3s slower, and no longer
+  order-dependent. A test that passes based on ordering is worse than a slower suite.
+- **Rejected nesting repository interfaces inside a holder class.** It read tidily but
+  Spring Data does not discover nested interfaces, so the context failed to start.
+  Split into top-level interfaces.
+- **Salary is deliberately absent from `PUT /api/employees/{id}`.** Pay only moves
+  through the compensation endpoint, so every change carries an effective date and a
+  reason. Allowing it on the profile edit would let history be overwritten silently —
+  the exact failure the data model exists to prevent. Asserted by test.
+- **Sort fields are whitelisted**, and the sort key selects a SQL expression rather
+  than becoming one. Tested with `?sort=salary; DROP TABLE employee`.
+- **Page size is capped at 100.** Without a ceiling, `?size=1000000` is an unbounded
+  response with extra steps.
+- **Sorting by salary uses the FX-normalised figure**, not raw minor units — otherwise
+  a mid-level Japanese salary outranks every US director. Asserted by test.
+- Boot 4 moved `AutoConfigureMockMvc` and ships Jackson 3 under `tools.jackson`. Used
+  JsonPath for response assertions rather than an ObjectMapper, sidestepping the
+  Jackson 2/3 package split entirely.

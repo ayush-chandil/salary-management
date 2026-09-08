@@ -4,7 +4,7 @@ Web-based employee salary management software for an organisation of ~10,000
 employees across multiple countries. Built for the HR Manager persona: manage
 compensation data, and answer questions about how the organisation pays people.
 
-> **Status:** Phase 3 — schema, domain model and 10k-row seed in place. See
+> **Status:** Phase 4 — core API complete. See
 > [docs/requirements.md](docs/requirements.md) for scope and
 > [docs/plan.md](docs/plan.md) for the phased build plan.
 

@@ -18,7 +18,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.generator.EventType;
 
 /**
  * An employee. Deliberately has no {@code manager_id}: none of the questions in
@@ -51,10 +53,14 @@ public class Employee {
   /**
    * Database-generated column, backing the trigram search index.
    *
-   * <p>Intentionally not annotated {@code @Generated}: that would make Hibernate re-select every
-   * row after insert to read the value back, which disables JDBC batching -- and the seed inserts
-   * 10,000 employees. The value is populated on the next load instead.
+   * <p>{@code @Generated} makes Hibernate read the value back after a write, at the cost of one
+   * extra select per row. That cost is acceptable because the only JPA writes here are single
+   * employees -- the 10,000-row seed goes through JDBC batches and never touches this mapping.
+   *
+   * <p>Without it, renaming an employee and returning the result in the same transaction serves the
+   * stale name from the persistence context, because nothing forces a re-read.
    */
+  @Generated(event = {EventType.INSERT, EventType.UPDATE})
   @Column(name = "full_name", insertable = false, updatable = false)
   private String fullName;
 

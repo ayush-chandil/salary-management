@@ -67,16 +67,14 @@ What the phase settled:
 - Trigram index measured at **~13x faster** than the sequential scan it replaces
 - 9 tests green
 
-## Phase 4 — Core API & tests
+## Phase 4 — Core API & tests ✅
 
-- `GET /api/employees` — server-side pagination, search, filter, sort
-- `GET /api/employees/{id}` — with full compensation history
-- `POST` / `PATCH /api/employees`
-- `POST /api/employees/{id}/compensation` — inserts a new effective-dated row and closes the prior one
-- Bean Validation, layered structure (controller → service → repository),
-  `@RestControllerAdvice` error handling returning RFC 9457 problem details
-- Tests written alongside: unit tests on salary/FX/band domain logic,
-  `@SpringBootTest` + MockMvc integration tests per endpoint, Testcontainers Postgres
+- `GET /api/employees` — paginated, filterable, searchable, sortable; page size capped
+- `GET /api/employees/{id}` — profile, current pay, full history, band position
+- `POST` / `PUT /api/employees` — create with starting pay, edit attributes
+- `POST /api/employees/{id}/compensation` — closes the current record, opens a new one
+- Bean Validation, layered controller → service → repository, RFC 9457 problem details
+- 46 tests green (18 pure unit tests on money arithmetic, 19 HTTP integration tests)
 
 ## Phase 5 — Insights API
 
